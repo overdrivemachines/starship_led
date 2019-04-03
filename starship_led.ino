@@ -12,7 +12,8 @@
 // 363 to 384 
 
 
-#define BRIGHTNESS 50
+#define BRIGHTNESS 255
+#define BOARD_BRIGHTNESS 50
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_RGB + NEO_KHZ800);
 
@@ -56,9 +57,9 @@ void setup() {
   delay(800);
 
   // turn all board pixels blue
-  for (i = 0; i < BOARD_LEDS; i++)
+  for (i = 0; i < NUM_LEDS; i++)
   {
-    strip.setPixelColor(i, 150, 0, 150);
+    strip.setPixelColor(i, 0, 0, 150);
   }
   strip.show();
 }
@@ -94,14 +95,14 @@ void randomChange(uint8_t percent) {
       {
         // 50% of the time set to red
         if (random(0,100) < 50)
-          randomColor = strip.Color(255, 0, 0);
+          randomColor = strip.Color(255 * BOARD_BRIGHTNESS / 255, 0, 0);
         else
-          randomColor = strip.Color(0, 255, 0);
+          randomColor = strip.Color(0, 255 * BOARD_BRIGHTNESS / 255, 0);
       }
       else
       {
         // Generate random color
-        randomColor = strip.Color(random(0,254), random(0,254), random(0,254));
+        randomColor = strip.Color(random(0,254) * BOARD_BRIGHTNESS / 255, random(0,254) * BOARD_BRIGHTNESS / 255, random(0,254) * BOARD_BRIGHTNESS / 255);
       }
       
       strip.setPixelColor(i, randomColor);
@@ -113,7 +114,7 @@ void randomChange(uint8_t percent) {
       {
         // Change 1% of the time to blue
         if (random(0, 100) < 1)
-          strip.setPixelColor(i, 0, 0, 150);
+          strip.setPixelColor(i, 0, 0, 150 * BOARD_BRIGHTNESS / 255);
         else
           strip.setPixelColor(i, 0, 0, 0);
       }
@@ -124,12 +125,13 @@ void randomChange(uint8_t percent) {
   // circular LEDs
   if (j < NUM_LEDS)
   {
-    strip.setPixelColor(j, strip.Color(0, 0, 150));
-    if (j - BOARD_LEDS >= 4)
-      strip.setPixelColor(j - 4, 0);
+    // strip.setPixelColor(j, strip.Color(255, 255, 255));
+    strip.setPixelColor(j, 255, 255, 255);
+    if (j - BOARD_LEDS >= 3)
+      strip.setPixelColor(j - 3, 0, 0, 150);
     else
     {
-      strip.setPixelColor(NUM_LEDS - 4 + (j - BOARD_LEDS), 0);
+      strip.setPixelColor(NUM_LEDS - 3 + (j - BOARD_LEDS), 0, 0, 150);
     }
     j = j + 1;
   }
