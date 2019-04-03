@@ -5,11 +5,16 @@
 
 #define PIN 6
 
-#define NUM_LEDS 250
+// #define NUM_LEDS 362
+#define NUM_LEDS 384
+#define BOARD_LEDS 361
+
+// 363 to 384 
+
 
 #define BRIGHTNESS 50
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRBW + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_RGB + NEO_KHZ800);
 
 byte neopix_gamma[] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -29,32 +34,119 @@ byte neopix_gamma[] = {
   177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
 
+// loop counters
+int i, j = BOARD_LEDS;
+
+// Random number
+uint8_t r;
+
+uint32_t randomColor;
 
 void setup() {
-  
-  // End of trinket special code
   strip.setBrightness(BRIGHTNESS);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+  // turn off all pixels
+  for (i = 0; i < NUM_LEDS; i++)
+  {
+    strip.setPixelColor(i, 0, 0, 0);
+  }
+  strip.show();
+
+  delay(800);
+
+  // turn all board pixels blue
+  for (i = 0; i < BOARD_LEDS; i++)
+  {
+    strip.setPixelColor(i, 150, 0, 150);
+  }
+  strip.show();
 }
 
 void loop() {
-  // Some example procedures showing how to display to the pixels:
-  colorWipe(strip.Color(255, 0, 0), 50); // Red
-  colorWipe(strip.Color(0, 255, 0), 50); // Green
-  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-  colorWipe(strip.Color(0, 0, 0, 255), 50); // White
+  randomChange(20);
+  delay(random(0, 800));
 
-  whiteOverRainbow(20,75,5);  
+  // whiteOverRainbow(20,75,5);  
 
-  pulseWhite(5); 
+  // pulseWhite(5); 
 
   // fullWhite();
-  // delay(2000);
+   //delay(2000);
 
-  rainbowFade2White(3,3,1);
+  // rainbowFade2White(3,3,1);
+  // rainbowFade2White(3,3,0);
+  // rainbowCycle(2);
 
+  //chase(strip.Color(255, 0, 0)); // Red
+  //chase(strip.Color(0, 255, 0)); // Green
+  //chase(strip.Color(0, 0, 255)); // Blue
+}
 
+void randomChange(uint8_t percent) {
+  for (i = 0; i < BOARD_LEDS; i++) {
+    // generate random number
+    r = random(0, 100);
+    if (r < percent)
+    {
+      // 10% of the time set to red or green
+      if (random(0, 100) < 10)
+      {
+        // 50% of the time set to red
+        if (random(0,100) < 50)
+          randomColor = strip.Color(255, 0, 0);
+        else
+          randomColor = strip.Color(0, 255, 0);
+      }
+      else
+      {
+        // Generate random color
+        randomColor = strip.Color(random(0,254), random(0,254), random(0,254));
+      }
+      
+      strip.setPixelColor(i, randomColor);
+    }
+    else
+    {
+      // Change 50% of the time
+      if (random(0,100) < 50)
+      {
+        // Change 1% of the time to blue
+        if (random(0, 100) < 1)
+          strip.setPixelColor(i, 0, 0, 150);
+        else
+          strip.setPixelColor(i, 0, 0, 0);
+      }
+      
+    }
+  }
+
+  // circular LEDs
+  if (j < NUM_LEDS)
+  {
+    strip.setPixelColor(j, strip.Color(0, 0, 150));
+    if (j - BOARD_LEDS >= 4)
+      strip.setPixelColor(j - 4, 0);
+    else
+    {
+      strip.setPixelColor(NUM_LEDS - 4 + (j - BOARD_LEDS), 0);
+    }
+    j = j + 1;
+  }
+  else
+  {
+    j = BOARD_LEDS;
+  }
+  strip.show();
+}
+
+static void chase(uint32_t c) {
+  for(uint16_t i=0; i<strip.numPixels()+4; i++) {
+      strip.setPixelColor(i  , c); // Draw new pixel
+      strip.setPixelColor(i-4, 0); // Erase pixel a few steps back
+      strip.show();
+      delay(25);
+  }
 }
 
 // Fill the dots one after the other with a color
