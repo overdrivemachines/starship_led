@@ -43,10 +43,30 @@ uint8_t r;
 
 uint32_t randomColor;
 
+bool redToggle = true;
+
+String inputString = "";      // a String to hold incoming data
+bool stringComplete = false;  // whether the string is complete
+
+int mode = 0; // Mode will be set by input from serial
+bool is_red_alert = false; // is red alert mode activated?
+
 void setup() {
+  // initialize serial:
+  Serial.begin(9600);
+  // reserve 8 bytes for the inputString:
+  inputString.reserve(8);
+  
   strip.setBrightness(BRIGHTNESS);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+
+  // start serial port at 9600 bps and wait for port to open:
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+  
   // turn off all pixels
   for (i = 0; i < NUM_LEDS; i++)
   {
@@ -64,24 +84,53 @@ void setup() {
   strip.show();
 }
 
-void loop() {
-  randomChange(20);
-  delay(random(0, 800));
+void loop() 
+{
+  if (stringComplete) 
+  {
+    Serial.println(inputString);
+    if (inputString.toInt() == 6)
+    {
+      is_red_alert = true;
+      Serial.println("Red Alert Activated");
+    }
+    else // should be 7 but any other number should work 
+    {
+      is_red_alert = false;
+      Serial.println("Red Alert Deactivated");
+    }
 
-  // whiteOverRainbow(20,75,5);  
+    // clear the string:
+    inputString = "";
+    stringComplete = false;    
+  }
 
-  // pulseWhite(5); 
+  if (is_red_alert)
+  {
+    redAlertLED();
+    delay(600);
+  }
+  else
+  {
+    randomChange(20);
+    delay(random(0, 800));
+  }
+}
 
-  // fullWhite();
-   //delay(2000);
-
-  // rainbowFade2White(3,3,1);
-  // rainbowFade2White(3,3,0);
-  // rainbowCycle(2);
-
-  //chase(strip.Color(255, 0, 0)); // Red
-  //chase(strip.Color(0, 255, 0)); // Green
-  //chase(strip.Color(0, 0, 255)); // Blue
+void redAlertLED() {
+  if (redToggle) 
+  {
+    for (i = 0; i < NUM_LEDS; i++)
+      strip.setPixelColor(i, 255, 0, 0);
+    redToggle = false;
+  }
+  else
+  {
+    for (i = 0; i < NUM_LEDS; i++)
+      strip.setPixelColor(i, 20, 0, 0);
+    redToggle = true;
+  }
+  strip.show();
 }
 
 void randomChange(uint8_t percent) {
@@ -348,5 +397,24 @@ uint8_t green(uint32_t c) {
 }
 uint8_t blue(uint32_t c) {
   return (c);
+}
+
+/*
+  SerialEvent occurs whenever a new data comes in the hardware serial RX. This
+  routine is run between each time loop() runs, so using delay inside loop can
+  delay response. Multiple bytes of data may be available.
+*/
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag so the main loop can
+    // do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
 }
 
